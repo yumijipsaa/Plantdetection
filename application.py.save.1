@@ -1,0 +1,513 @@
+import time
+
+from flask import Flask, request
+import os
+from config import InferenceConfig, Find_algorithm_config
+import torch
+from detectron2 import model_zoo
+from detectron2.config import get_cfg
+import json
+from detectron2.engine import DefaultPredictor
+from find_algorithm import Find_coordinates
+import utils as c_utl
+import numpy as np
+import cv2
+import numpy as np
+import os, sys, time
+import tensorflow as tf
+
+# from matplotlib import pyplot as plt
+from PIL import Image
+
+from object_detection.utils import ops as utils_ops
+from object_detection.utils import label_map_util
+# from object_detection.utils import visualization_utils as vis_util
+
+import argparse
+
+
+import logging
+
+app = Flask(__name__)
+inference_batch_size=10
+c_cfg = InferenceConfig
+find_condig = Find_algorithm_config
+
+def tomato_inference(image, sess):
+    # with graph.as_default():
+    # with tf.Session() as sess:
+    # Get handles to input and output tensors
+    ops = tf.compat.v1.get_default_graph().get_operations()
+    all_tensor_names = {output.name for op in ops for output in op.outputs}
+    tensor_dict = {}
+    for key in [
+        'num_detections', 'detection_boxes', 'detection_scores',
+        'detection_classes', 'detection_masks'
+    ]:
+        tensor_name = key + ':0'
+        if tensor_name in all_tensor_names:
+            tensor_dict[key] = tf.compat.v1.get_default_graph().get_tensor_by_name(tensor_name)
+
+    if 'detection_masks' in tensor_dict:
+        # The following processing is only for single image
+        detection_boxes = tf.squeeze(tensor_dict['detection_boxes'], [0])
+        detection_masks = tf.squeeze(tensor_dict['detection_masks'], [0])
+
+        # Reframe is required to translate mask from box coordinates to image coordinates and fit the image size.
+        real_num_detection = tf.cast(tensor_dict['num_detections'][0], tf.int32)
+        detection_boxes = tf.slice(detection_boxes, [0, 0], [real_num_detection, -1])
+        detection_masks = tf.slice(detection_masks, [0, 0, 0], [real_num_detection, -1, -1])
+        detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(
+            detection_masks, detection_boxes, image.shape[0], image.shape[1])
+        detection_masks_reframed = tf.cast(tf.greater(detection_masks_reframed, 0.5), tf.uint8)
+
+        # Follow the convention by adding back the batch dimension
+        tensor_dict['detection_masks'] = tf.expand_dims(detection_masks_reframed, 0)
+
+    image_tensor = tf.compat.v1.get_default_graph().get_tensor_by_name('image_tensor:0')
+    # Run inference
+    output_dict = sess.run(tensor_dict, feed_dict={image_tensor: np.expand_dims(image, 0)})
+
+    # all outputs are float32 numpy arrays, so convert types as appropriate
+    output_dict['num_detections'] = int(output_dict['num_detections'][0])
+    output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint8)
+    output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
+    output_dict['detection_scores'] = output_dict['detection_scores'][0]
+    if 'detection_masks' in output_dict:
+        output_dict['detection_masks'] = output_dict['detection_masks'][0]
+    return output_dict
+
+
+def paprika_algorithm(find_condig, class_name_list, outputs, img, plant_type):
+    get_coordinates_segmentation = Find_coordinates(find_condig, plant_type, class_name_list)
+    drawn_image, has_mask, coordinates_dict, segmentations = get_coordinates_segmentation.calculate_coordinates(outputs,img)
+    if not has_mask:
+        print("#             there is nothing to draw.")
+        return None
+    else:
+        
+json_dict = c_utl.save_to_json(coordinates_dict, segmentations)
+        return json_dict
+
+
+
+### get for_inference path
+model_save_path = os.path.join(os.getcwd(), c_cfg.LOAD_MODEL_DIR)
+melon_for_inference = "2022-06-23_123_melon.json"
+paprika_for_inference= "2022-12-07_1025_paprika.json"
+cucumber_for_inference = "2022-03-29_955_cucumber.json"
+onion_for_inference = "2022-06-23_1151_onion.json"
+strawberry_for_inference = "2022-12-07_104_strawberry.json"
+chilipepper_seed_for_inference = "2022-06-07_1751_chilipepper_seed.json"
+cucumber_seed_for_inference = "2022-07-25_102_cucumber_seed.json"
+tomato_for_inference = "2022-08-18_1816_tomato.json"
+
+
+
+
+
+
+def get_paprika_metadata_for_inference():
+    json_file = os.path.join(os.path.join(os.getcwd(), "for_inference"), paprika_for_inference)
+    with open(json_file) as f:
+        metadata = json.load(f)
+    return metadata
+
+def get_melon_metadata_for_inference():
+    json_file = os.path.join(os.path.join(os.getcwd(), "for_inference"), melon_for_inference)
+    with open(json_file) as f:
+        metadata = json.load(f)
+    return metadata
+
+def get_cucumber_metadata_for_inference():
+    json_file = os.path.join(os.path.join(os.getcwd(), "for_inference"), cucumber_for_inference)
+    with open(json_file) as f:
+        metadata = json.load(f)
+    return metadata
+
+def get_onion_metadata_for_inference():
+    json_file = os.path.join(os.path.join(os.getcwd(), "for_inference"), onion_for_inference)
+    with open(json_file) as f:
+        metadata = json.load(f)
+    return metadata
+
+def get_strawberry_metadata_for_inference():
+    json_file = os.path.join(os.path.join(os.getcwd(), "for_inference"), strawberry_for_inference)
+    with open(json_file) as f:
+        metadata = json.load(f)
+    return metadata
+
+def get_chilipepper_seed_metadata_for_inference():
+    json_file = os.path.join(os.path.join(os.getcwd(), "for_inference"), chilipepper_seed_for_inference)
+    with open(json_file) as f:
+        metadata = json.load(f)
+    return metadata
+
+def get_cucumber_seed_metadata_for_inference():
+    json_file = os.path.join(os.path.join(os.getcwd(), "for_inference"), cucumber_seed_for_inference)
+    with open(json_file) as f:
+        metadata = json.load(f)
+    return metadata
+
+def get_tomato_metadata_for_inference():
+    json_file = os.path.join(os.path.join(os.getcwd(), "for_inference"), tomato_for_inference)
+    with open(json_file) as f:
+        metadata = json.load(f)
+    return metadata
+
+
+def set_cfg_for_inference(cfg, c_cfg, model, model_saved_path, class_num):
+    # add project-specific config (e.g., TensorMask) here if you're not running a model in detectron2's core library
+    # cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
+    cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/for_train.yaml"))  # 가능
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = class_num  # 반드시 class의 개수와 맞아야함
+    cfg.OUTPUT_DIR = model_saved_path
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = c_cfg.SCORE_THRESHOLD  # set threshold for this model
+    # Find a model from detectron2's model zoo. You can use the https://dl.fbaipublicfiles... url as well
+    cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, model)
+
+
+
+
+cfg = get_cfg()
+if not torch.cuda.is_available():
+    cfg.MODEL.DEVICE = 'cpu'
+
+### get model path
+model_save_path = os.path.join(os.getcwd(), c_cfg.LOAD_MODEL_DIR)
+melon_model = "2022-06-23_123_melon_500000.pth"
+paprika_model = "2022-12-07_1025_paprika_1000000.pth"
+cucumber_model = "2022-03-29_955_cucumber_500000.pth"
+onion_model = "2022-06-23_1151_onion_300000.pth"
+strawberry_model = "2022-12-07_104_strawberry_500000.pth"
+chilipepper_seed_model = "2022-06-07_1751_chilipepper_seed_200000.pth"
+cucumber_seed_model = "2022-07-25_102_cucumber_seed_150000.pth"
+tomato_model = "2022-08-18_1816_tomato_200000.pth"
+
+
+### metadata of objects
+paprika_cls_list = get_paprika_metadata_for_inference()
+melon_cls_list = get_melon_metadata_for_inference()
+cucumber_cls_list = get_cucumber_metadata_for_inference()
+onion_cls_list = get_onion_metadata_for_inference()
+strawberry_cls_list = get_strawberry_metadata_for_inference()
+chilipepper_seed_cls_list = get_chilipepper_seed_metadata_for_inference()
+cucumber_seed_cls_list = get_cucumber_seed_metadata_for_inference()
+tomato_cls_list = get_tomato_metadata_for_inference()
+
+
+
+### load paprika model
+set_cfg_for_inference(cfg, c_cfg, paprika_model, model_save_path, len(paprika_cls_list))
+paprika_predictor = DefaultPredictor(cfg)
+
+### load melon model
+set_cfg_for_inference(cfg, c_cfg, melon_model, model_save_path, len(melon_cls_list))
+melon_predictor = DefaultPredictor(cfg)
+
+
+### load cucumber model
+set_cfg_for_inference(cfg, c_cfg, cucumber_model, model_save_path, len(cucumber_cls_list))
+cucumber_predictor = DefaultPredictor(cfg)
+
+
+### load onion model
+set_cfg_for_inference(cfg, c_cfg, onion_model, model_save_path, len(onion_cls_list))
+onion_predictor = DefaultPredictor(cfg)
+
+
+### load strawberry model
+set_cfg_for_inference(cfg, c_cfg, strawberry_model, model_save_path, len(strawberry_cls_list))
+strawberry_predictor = DefaultPredictor(cfg)
+
+### load chilipepper_seed model
+set_cfg_for_inference(cfg, c_cfg, chilipepper_seed_model, model_save_path, len(chilipepper_seed_cls_list))
+chilipepper_seed_predictor = DefaultPredictor(cfg)
+
+### load cucumber_seed model
+set_cfg_for_inference(cfg, c_cfg, cucumber_seed_model, model_save_path, len(cucumber_seed_cls_list))
+cucumber_seed_predictor = DefaultPredictor(cfg)
+
+### load tomato model
+set_cfg_for_inference(cfg, c_cfg, tomato_model, model_save_path, len(tomato_cls_list))
+tomato_predictor = DefaultPredictor(cfg)
+
+
+
+
+### parameters for tomato inference
+db_info = {
+    "grow": {  # 토마토 생육
+        "model": "faster_rcnn_resnet50",
+        "labels": {
+            "melon leaf": "melon leaf",
+            "melon stem": "melon stem",
+            "melon flower": "melon flower",
+            "melon petiole": "melon petiole",
+            "melon fruit": "melon fruit",
+            "tomato_flower": "tomato_flower",
+            "tomato_flower_close": "tomato_flower_close",
+            "tomato_fruit": "tomato_fruit",
+            "tomato_stem": "tomato_stem",
+            "tomato_leaf": "tomato_leaf",
+            "onion round": "onion round",
+        }
+    },
+}
+# get rid of some warning messages
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2', '3'}
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # DEBUG, INFO, WARN, ERROR, or FATAL
+
+# image, bounding box constant
+MAX_IMG_SIZE = 512
+LINE_THICKNESS = 3  # bounding box thickness
+SCORE_LIMIT = 0.1  # score limit of the bounding box
+
+# resize and convert file name
+RESIZE_QUALITY = 40
+RESIZE_FILE = "./tmp/object_detect.jpg"
+CONVERT_FILE = "./tmp/object_convert.jpg"
+
+# trained model path
+GRAPH_FILE_NAME = "frozen_inference_graph.pb"
+LABEL_FILE_NAME = "label_map.pbtxt"
+OBJECT_NAME = 'tomato'
+DB_NAME = 'grow'
+ID_START = 1
+CLASSES_ID = tuple(range(ID_START, ID_START + len(db_info['grow']["labels"])))
+DB_DIR = r'models/tomato'
+# Path to frozen detection graph. This is the actual model that is used for the object detection.
+PATH_TO_FROZEN_GRAPH = DB_DIR + "/" + GRAPH_FILE_NAME
+# List of the strings that is used to add correct label for each box.
+PATH_TO_LABEL = os.path.join(DB_DIR, LABEL_FILE_NAME)
+detection_graph = tf.Graph()
+with detection_graph.as_default():
+    od_graph_def = tf.compat.v1.GraphDef()
+    with tf.compat.v2.io.gfile.GFile(PATH_TO_FROZEN_GRAPH, 'rb') as fid:
+        serialized_graph = fid.read()
+        od_graph_def.ParseFromString(serialized_graph)
+        tf.import_graph_def(od_graph_def, name='')
+label_map = label_map_util.load_labelmap(PATH_TO_LABEL)
+labels_utf8 = db_info[DB_NAME]["labels"]
+# categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=len(labels_utf8), use_display_name=True)
+categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=100,use_display_name=True)
+category_index = label_map_util.create_category_index(categories)
+
+# GPU Memory allocation
+gpu_options = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=0.3)
+config = tf.compat.v1.ConfigProto(gpu_options=gpu_options)
+
+
+
+# Felzenszwalb et al
+def non_max_suppression_fast(image, boxes, scores, classes, iou_threshold):
+    '''
+        boxes : coordinates of each box
+        scores : score of each box
+        classes : classes of each box
+        iou_threshold : iou threshold(box with iou larger than threshold will be removed)
+    '''
+    if len(boxes) == 0:
+        return []
+
+    # Init the picked box info
+    pick = []
+
+    # Box coordinate consist of left top and right bottom
+    (width, height) = image.shape[:2]
+
+    x1 = boxes[:, 0] * width
+    y1 = boxes[:, 1] * height
+    x2 = boxes[:, 2] * width
+    y2 = boxes[:, 3] * height
+
+    # Compute area of each boxes
+    area = (x2 - x1 + 1) * (y2 - y1 + 1)
+    # Greedily select the order of box to compare iou
+    idxs = np.argsort(scores)
+
+    while (len(idxs) > 0):
+
+        last = len(idxs) - 1
+        i = idxs[last]
+
+        if classes[i] not in CLASSES_ID:
+            break
+        if scores[i] < SCORE_LIMIT:  # skip the low score
+            break
+
+        pick.append(i)
+
+        # With vector implementation, we can calculate fast
+        xx1 = np.maximum(x1[i], x1[idxs[:last]])
+        yy1 = np.maximum(y1[i], y1[idxs[:last]])
+        xx2 = np.minimum(x2[i], x2[idxs[:last]])
+        yy2 = np.minimum(y2[i], y2[idxs[:last]])
+
+        w = np.maximum(0, xx2 - xx1 + 1)
+        h = np.maximum(0, yy2 - yy1 + 1)
+        intersection = w * h
+
+        # Calculate the iou
+        iou = intersection / (area[idxs[:last]] + area[idxs[last]] - intersection)
+
+        idxs = np.delete(idxs, np.concatenate(([last], np.where(iou > iou_threshold)[0])))
+    # return boxes[pick].astype("int")
+    return boxes[pick], scores[pick], classes[pick]
+
+
+
+
+def inference(images, plant_type):
+    error = None
+    res={}
+    result = []
+    predictor = None
+    class_name_list = None
+    if plant_type!="org_tomato":      # original : if type!="org_tomato":  
+        if plant_type=='melon':
+            predictor = melon_predictor
+            class_name_list = melon_cls_list
+        elif plant_type=='paprika':
+            predictor = paprika_predictor
+            class_name_list = paprika_cls_list
+        elif plant_type=='cucumber':
+            predictor = cucumber_predictor
+            class_name_list = cucumber_cls_list
+        elif plant_type=='onion':
+            predictor = onion_predictor
+            class_name_list = onion_cls_list
+        elif plant_type=='strawberry':
+            predictor = strawberry_predictor
+            class_name_list = strawberry_cls_list
+        elif plant_type=='chilipepper_seed':
+            predictor = chilipepper_seed_predictor
+            class_name_list = chilipepper_seed_cls_list
+        elif plant_type=='chili':
+            predictor = chilipepper_seed_predictor
+            class_name_list = chilipepper_seed_cls_list
+
+        elif plant_type=='cucumber_seed':
+            predictor = cucumber_seed_predictor
+            class_name_list = cucumber_seed_cls_list
+        elif plant_type=='tomato':
+            predictor = tomato_predictor
+            class_name_list = tomato_cls_list
+            print(f"type : {plant_type}")
+
+        else:
+            error = 'request type was not implemented. Please select within ["paprika","melon", "tomato"]'
+            res['result']=error
+            res['status'] = 500
+
+       
+        if type(predictor) is None : raise TypeError(f"type-{plant_type} : predictor type is None.")
+        ### predicting
+        outputs, original_images = predictor(images, c_cfg)
+        
+        if len(outputs)<1 or len(original_images)<1:
+            error = 'Received images from request, but the detection could not performed, contact API server administrator for more detail'
+            res['result'] = error
+            return res
+        for i, (im, output) in enumerate(zip(original_images, outputs)):
+            json_dict = paprika_algorithm(find_condig, class_name_list, output, im, plant_type)
+            result.append(json_dict)
+    else:
+        with tf.compat.v1.Session(graph=detection_graph, config=config) as sess:
+            for image in images:
+                img_result = {}
+                output_dict = tomato_inference(image, sess=sess)
+                boxes = output_dict['detection_boxes']
+                classes = output_dict['detection_classes']
+                scores = output_dict['detection_scores']
+                # print(classes)
+
+                # Non-Maximum Suppression(NMS)
+                (boxes, scores, classes) = non_max_suppression_fast(image, boxes, scores, classes, 0.5)
+                temp=[]
+                for i, (box, cls, score) in enumerate(zip(boxes, classes, scores)):
+                    print(f"{score}-{cls}: {box}")
+                    if score<0.5: continue
+                    (ymin, xmin, ymax, xmax) = (boxes[i, 0], boxes[i, 1], boxes[i, 2], boxes[i, 3])
+
+                    bbox=[]
+                    bbox.append({'x':int(xmin * image.shape[1]), 'y': int(ymin * image.shape[0])})
+                    bbox.append({'x':int(xmin * image.shape[1]), 'y': int(ymax * image.shape[0])})
+                    bbox.append({'x':int(xmax * image.shape[1]), 'y': int(ymax * image.shape[0])})
+                    bbox.append({'x':int(xmax * image.shape[1]), 'y': int(ymin * image.shape[0])})
+                    temp.append({'height': [{'x': 0, 'y': 0}], 'width': [{'x': 0, 'y': 0}], 'segmentation': bbox})
+
+                    if cls==1:
+                        img_result['flower'] = temp
+                    elif cls==2:
+                        img_result['flower_close'] = temp
+                    elif cls==3:
+                        img_result['fruit'] = temp
+                    elif cls==4:
+                        img_result['stem'] = temp
+                    else:
+                        img_result['leaf'] = temp
+                result.append(img_result)
+    # "tomato_flower": "tomato_flower",
+    # "tomato_flower_close": "tomato_flower_close",
+    # "tomato_fruit": "tomato_fruit",
+    # "tomato_stem": "tomato_stem",
+    # "tomato_leaf": "tomato_leaf",
+    if len(result) > 0:
+        res['result'] = result
+        res['status']= 200
+    else:
+        res['result'] = 'Could not detect any object..'
+        res['status']= 500
+
+    torch.cuda.empty_cache()
+    return res
+
+
+@app.route('/plant-inference', methods=['POST'])
+def api_inference():
+    start = time.time()
+    print('=========================== STARTED API SERVER.. =============================')
+    files = request.files
+    print(files)
+    images = []
+    res={}
+    model_type = request.form['model_type']
+    for file in files:
+        ### get file binary data
+        bin_img = files[file].read()
+        ### convert binary data to numpy array
+        nparr = np.fromstring(bin_img,np.int8)
+        try:
+            #### decode numpy array to opencv image
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if img is not None:
+                images.append(img)
+        except Exception as e:
+            print(f'Error {e} when convert request stream to image')
+            print(bin_img)
+            continue
+
+            
+    if len(images) > 0:
+        if len(images)>inference_batch_size:
+            images = [images[x:x + inference_batch_size] for x in range(0, len(images), inference_batch_size)]
+        else:
+            images=[images]
+
+        for sub_images in images:
+            res = inference(sub_images, model_type)
+    else:
+        error = "Could not get images from request, maybe there is problem with your image format.."
+        res['result'] = error
+        res['status'] = 500
+
+    print(f'============== Finished in {round(time.time()-start,3)} seconds.. ==============')
+    response = app.response_class(response=json.dumps(res['result']), status=res['status'], mimetype='application/json')
+    return response
+
+
+
+
+
+
