@@ -15,7 +15,7 @@ metainfo = {
     "flower",
     "fruit",
     "cap",
-    "lear_width")} # 클래스 이름 리스트 (dataset.json의 구성요소와 값이 맞아야한다.)
+    "lear_width"),} # 클래스 이름 리스트 (dataset.json의 구성요소와 값이 맞아야한다.)
 
 
 train_pipeline = [

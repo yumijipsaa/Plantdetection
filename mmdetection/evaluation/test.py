@@ -21,8 +21,8 @@ from mmdet.utils import setup_cache_size_limit_of_dynamo ## PyTorch torch.compil
 
 
 # 예시)
-# python evaluation/test.py custom_configs/cascade-mask-rcnn_r50_fpn_melon.py
-# work_dirs/epoch_218.pth --work-dir evaluation_results --out evaluation_results/results.pkl
+# python evaluation/test.py work_dirs/mask2former_r50_8xb2-lsj-50e_coco_tomato/epoch_25.pth --work-dir evaluation_results --out evaluation_results/results.pkl
+
 
 def parse_args():
     parser = argparse.ArgumentParser(

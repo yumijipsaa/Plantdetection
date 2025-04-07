@@ -70,35 +70,35 @@ test_evaluator = dict(
 
 
 
-val_pipeline = [
-    dict(type='LoadImageFromFile', backend_args=backend_args),
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
-    dict(type='Resize', scale=(1333, 800), keep_ratio=True),   
-    dict(type='PackDetInputs')
-]
+# val_pipeline = [
+#     dict(type='LoadImageFromFile', backend_args=backend_args),
+#     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+#     dict(type='Resize', scale=(1333, 800), keep_ratio=True),   
+#     dict(type='PackDetInputs')
+# ]
 
-val_dataloader = dict(
-    batch_size=2,
-    num_workers=2,
-    persistent_workers=True,
-    sampler=dict(type='DefaultSampler', shuffle=False),
-    batch_sampler=dict(type='AspectRatioBatchSampler'),
-    dataset=dict(
-        type=dataset_type,
+# val_dataloader = dict(
+#     batch_size=2,
+#     num_workers=2,
+#     persistent_workers=True,
+#     sampler=dict(type='DefaultSampler', shuffle=False),
+#     batch_sampler=dict(type='AspectRatioBatchSampler'),
+#     dataset=dict(
+#         type=dataset_type,
         
-        ann_file= data_root + 'onion_test/dataset.json',
-        metainfo = metainfo,
-        data_prefix=dict(img=''),
-        filter_cfg=dict(filter_empty_gt=True, min_size=32),
-        pipeline=val_pipeline,
-        backend_args=backend_args))
+#         ann_file= data_root + 'onion_test/dataset.json',
+#         metainfo = metainfo,
+#         data_prefix=dict(img=''),
+#         filter_cfg=dict(filter_empty_gt=True, min_size=32),
+#         pipeline=val_pipeline,
+#         backend_args=backend_args))
 
-val_evaluator = dict(
-    type='CocoMetric',
-    ann_file=data_root + 'onion_test/dataset.json',
-    metric=['bbox', 'segm'],
-    format_only=False,
-    backend_args=backend_args)
+# val_evaluator = dict(
+#     type='CocoMetric',
+#     ann_file=data_root + 'onion_test/dataset.json',
+#     metric=['bbox', 'segm'],
+#     format_only=False,
+#     backend_args=backend_args)
 
 
 

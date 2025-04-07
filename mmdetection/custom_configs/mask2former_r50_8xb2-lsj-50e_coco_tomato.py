@@ -45,7 +45,8 @@ model = dict(
     panoptic_fusion_head=dict(
         num_things_classes=num_things_classes,
         num_stuff_classes=num_stuff_classes),
-    test_cfg=dict(panoptic_on=True),
+    test_cfg=dict(panoptic_on=False,
+                  instance_on=True),
 
 
     train_cfg=dict(

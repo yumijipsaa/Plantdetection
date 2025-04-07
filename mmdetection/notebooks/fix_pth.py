@@ -2,6 +2,7 @@ import os
 import json
 
 ## dataset.json 파일의 img_path에 경로가 잘릴 경우 사용하는 스크립트
+## 하단의 사용 예시를 참고하여 수정 후 사용.
 
 
 def add_prefix_to_file_names(coco_json_path, prefix):

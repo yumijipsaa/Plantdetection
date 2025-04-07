@@ -1,4 +1,4 @@
-mmdetection/evaluation_results
+mmdetection/evaluation_results/
 models/
 images/
 __pycache__/
@@ -19,6 +19,7 @@ env/
 inference_result.log
 detectron2/temp_eval/
 mmdetection/final_models/
-mmdetection/data
-mmdetection/train_result
+mmdetection/data/
+mmdetection/train_result/
+mmdetection/custom_hooks/
 *.pth 
