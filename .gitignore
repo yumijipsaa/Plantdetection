@@ -23,3 +23,4 @@ mmdetection/data/
 mmdetection/train_result/
 mmdetection/custom_hooks/
 *.pth 
+.gitmessage.txt 
