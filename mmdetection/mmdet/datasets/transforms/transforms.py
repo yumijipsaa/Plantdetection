@@ -782,13 +782,7 @@ class RotateTransform(GeomTransform):
 
 
 
-
-
-
-
-
-
-@TRANSFORMS.register_module()
+@TRANSFORMS.register_module() ## force=True: 강제로 등록 에러나서 추가했음
 class Pad(MMCV_Pad):
     """Pad the image & segmentation map.
 

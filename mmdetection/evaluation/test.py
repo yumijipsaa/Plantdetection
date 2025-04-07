@@ -20,8 +20,14 @@ from mmdet.utils import setup_cache_size_limit_of_dynamo ## PyTorch torch.compil
 # 주로 학습된 모델의 성능을 테스트할 때 사용하며, 다양한 옵션을 통해 결과 시각화, 결과 저장, TTA(Test Time Augmentation) 등을 설정할 수 있다.
 
 
-# 예시)
-# python evaluation/test.py work_dirs/mask2former_r50_8xb2-lsj-50e_coco_tomato/epoch_25.pth --work-dir evaluation_results --out evaluation_results/results.pkl
+## 사용 예시)
+# python tools/test.py \
+# custom_configs/mask2former_r50_8xb2-lsj-50e_coco_tomato.py \ # # 설정 파일 경로
+# work_dirs/mask2former_r50_8xb2-lsj-50e_coco_tomato/epoch_44.pth \ # 로그와 기타 결과 파일 저장 위치
+# --work-dir evaluation_results \# 결과를 저장할 디렉토리 경로
+# --out evaluation_results/results.pkl \ # 결과를 저장할 .pkl 파일 경로
+# --show-dir evaluation_results/images \ # 시각화된 이미지를 저장할 디렉토리 경로
+# --eval bbox segm 
 
 
 def parse_args():
