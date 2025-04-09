@@ -8,7 +8,7 @@ import torch
 ### 모델 정보, 학습 설정, 총 학습 시간, GPU 정보 등을 요약 출력해주는 도구입니다.
 
 ### 사용 예시)
-### python evaluation/train_info.py --log work_dirs/20250403_133443.log --config custom_configs/mask2former_r50_8xb2-lsj-50e_coco_tomato.py
+### python evaluation/train_info.py --log work_dirs/20250408_094303.log --config custom_configs/mask2former_r50_8xb2-lsj-50e_coco_tomato.py
 ### 로그와 config 파일 경로를 인자로 받아서 실행합니다.
 
 def extract_info(log_path, config_path):

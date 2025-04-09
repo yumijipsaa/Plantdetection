@@ -77,7 +77,6 @@ INNER_OBJECTS = dict(
 )
 
 
-
 # 최종적으로 계산된 좌표(장, 폭, center point 등)를 얻고자 하는 object
 common_result = ['leaf', 'fruit', 'stem', 'flower']
 RESULT_OBJECTS = dict(

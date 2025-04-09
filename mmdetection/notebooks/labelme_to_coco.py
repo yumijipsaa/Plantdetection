@@ -20,11 +20,11 @@ val_coco_data = None
 train_coco_data = labelme2coco.convert(train_labelme_dir, "data/train/")
 train_coco_data = copy.deepcopy(train_coco_data)  # ✅ 기존 데이터 유지
 
-# 테스트 데이터 COCO 변환 (새로운 객체로 처리)
-test_coco_data = labelme2coco.convert(test_labelme_dir, "data/test/")
-test_coco_data = copy.deepcopy(test_coco_data)  # ✅ 기존 데이터 유지
+# # 테스트 데이터 COCO 변환 (새로운 객체로 처리)
+# test_coco_data = labelme2coco.convert(test_labelme_dir, "data/test/")
+# test_coco_data = copy.deepcopy(test_coco_data)  # ✅ 기존 데이터 유지
 
-# 검증증 데이터 COCO 변환 (새로운 객체로 처리)
-val_coco_data = labelme2coco.convert(val_labelme_dir, "data/val/")
-val_coco_data = copy.deepcopy(val_coco_data)  # ✅ 기존 데이터 유지
+# # 검증증 데이터 COCO 변환 (새로운 객체로 처리)
+# val_coco_data = labelme2coco.convert(val_labelme_dir, "data/val/")
+# val_coco_data = copy.deepcopy(val_coco_data)  # ✅ 기존 데이터 유지
 
