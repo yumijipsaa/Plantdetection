@@ -4,13 +4,13 @@
 
 
 _base_ = ["_base_/models/mask2former_r50_8xb2-lsj-50e_coco-panoptic.py",
-          "_base_/datasets/tomato_instance.py",
+          "_base_/datasets/paprika_instance.py",
         "_base_/schedules/schedule_1x.py", 
         "_base_/default_runtime.py"]
 
 
 
-num_things_classes = 11
+num_things_classes = 7
 num_stuff_classes = 0
 num_classes = num_things_classes + num_stuff_classes
 # image_size = (1024, 1024)
@@ -46,7 +46,6 @@ model = dict(
         num_things_classes=num_things_classes,
         num_stuff_classes=num_stuff_classes),
     test_cfg=dict(panoptic_on=False,
-                  score_thr=0.05,  # 0.05로 설정하여 5% 이상의 확률을 가진 것만 선택
                   instance_on=True),
 
 

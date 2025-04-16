@@ -1,6 +1,7 @@
 # 이미지와 JSON 라벨 파일을 설정된 비율에 따라 train, val, test 폴더로 분할하는 스크립트이다.
 # split_images() 함수에 분할 대상 폴더 경로를 넣어 실행한다.
 # 분할 비율은 ratio 인자를 수정하여 조정할 수 있다.
+# 하단의 사용 예시를 참고하여 수정 후 사용.
 
 import os
 import random
@@ -63,7 +64,7 @@ def split_images(
 
 #사용 예시:
 split_images(
-    image_dir='data/tomato',
-    label_dir='data/tomato',
-    output_dir='data'
+    image_dir='data/tomato', ### <---분할할 전체 이미지 폴더 경로
+    label_dir='data/tomato', ### <---분할할 전체 이미지의 제이슨파일 폴더 경로
+    output_dir='data' ### <---분할된 이미지와 제이슨파일을 저장할 폴더 경로
 )

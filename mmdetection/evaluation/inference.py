@@ -34,6 +34,7 @@ def main():
     # 모델 초기화
     inferencer = DetInferencer(model=args.config, weights=args.ckpt, device='cpu')
 
+
     # 결과 저장 디렉토리
     save_dir = "inference_result/"
     os.makedirs(save_dir, exist_ok=True)

@@ -40,7 +40,7 @@ train_dataloader = dict(
     batch_sampler=dict(type='AspectRatioBatchSampler'),
     dataset=dict(
         type=dataset_type,
-        ann_file= data_root + 'melon/dataset.json',
+        ann_file= data_root + 'train/dataset.json',
         metainfo = metainfo,
         data_prefix=dict(img=''),
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
@@ -55,7 +55,7 @@ test_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type=dataset_type,
-        ann_file= data_root + 'melon_test/dataset.json',
+        ann_file= data_root + 'test/dataset.json',
         metainfo = metainfo,
         data_prefix=dict(img=''),
         test_mode=True,
@@ -65,7 +65,7 @@ test_dataloader = dict(
 
 test_evaluator = dict(
     type='CocoMetric',
-    ann_file= data_root + 'melon_test/dataset.json',
+    ann_file= data_root + 'test/dataset.json',
     metric=['bbox', 'segm'],
     format_only=False,
     backend_args=backend_args)

@@ -15,6 +15,17 @@ from mmdet.registry import RUNNERS
 from mmdet.utils import setup_cache_size_limit_of_dynamo ## PyTorch torch.compile() 최적화 관련 설정.
 
 
+## 사용 예시)
+# python tools/test.py \
+# custom_configs/mask2former_r50_8xb2-lsj-50e_coco_tomato.py \ # # 설정 파일 경로
+# work_dirs/mask2former_r50_8xb2-lsj-50e_coco_tomato/epoch_44.pth \ # 로그와 기타 결과 파일 저장 위치
+# --work-dir evaluation_results \# 결과를 저장할 디렉토리 경로
+# --out evaluation_results/results.pkl \ # 결과를 저장할 .pkl 파일 경로
+# --show-dir evaluation_results/images \ # 시각화된 이미지를 저장할 디렉토리 경로
+# --eval bbox segm 
+
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description='MMDet test (and eval) a model')
