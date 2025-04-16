@@ -11,30 +11,29 @@ metainfo = {
     "bud_flower",
     "midrib",
     "leaf_width",
-    "growing",
     "flower",
+    "growing",
     "fruit",
-    "cap",
-    "lear_width"),} # 클래스 이름 리스트 (dataset.json의 구성요소와 값이 맞아야한다.)
+    "cap"),} # 클래스 이름 리스트 (dataset.json의 구성요소와 값이 맞아야한다.)
 
 
 train_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args), # 이미지 파일 로딩
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True), # 어노테이션 로딩 (box + mask)
-    dict(type='Resize', scale=(1024,1024), keep_ratio=False), # 이미지 크기 고정 (비율 유지 X)
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=True, with_seg=False), # 어노테이션 로딩 (box + mask)
+    dict(type='Resize', scale=(1024,1024), keep_ratio=True), # 이미지 크기 조정 (1024x1024로 고정)
+    # dict(type='Pad', size=(1024, 1024), pad_val=dict(img=0, seg=255), padding_mode='constant'), # 패딩 (1024x1024로 맞춤, img=0, seg=255로 설정)
     dict(type='RandomFlip', prob=0.5), # 수평 뒤집기 확률 50%
-    dict(type='RandomRotate', prob=0.5, angle_range=(-30, 30)),  # 📌 추가: 랜덤 회전 (각도 범위 ±30도)
+    # dict(type='RandomRotate', prob=0.5, angle_range=(-30, 30)),  # 📌 추가: 랜덤 회전 (각도 범위 ±30도)
     dict(type='PackDetInputs') # 모델 입력 형태로 데이터 포장
 ]
 
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args), # 테스트 이미지 로딩
-    dict(type='Resize', scale=(1024, 1024), keep_ratio=False), # 테스트 이미지 크기 고정
+    dict(type='Resize', scale=(1024, 1024), keep_ratio=True),
+    # dict(type='Pad', size=(1024, 1024), pad_val=dict(img=0, seg=255), padding_mode='constant'), # 패딩 (1024x1024로 맞춤, img=0, seg=255로 설정)
     # If you don't have a gt annotation, delete the pipeline
-    # dict(
-    #     type='LoadAnnotations', with_bbox=True, with_mask=True, with_seg=True),
-    dict(
-        type='PackDetInputs',
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=True, with_seg=False),
+    dict(type='PackDetInputs',
         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',
                    'scale_factor')) # 평가 시 메타 정보 저장
 ]

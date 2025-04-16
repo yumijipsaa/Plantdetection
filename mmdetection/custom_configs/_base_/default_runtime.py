@@ -1,4 +1,4 @@
-default_scope = 'mmdet'
+default_scope = 'mmdet' 
 
 default_hooks = dict(
     timer=dict(type='IterTimerHook'),  # 반복 시간 측정
@@ -15,11 +15,11 @@ env_cfg = dict(
     dist_cfg=dict(backend='nccl')  # 분산 학습 backend 설정 (NVIDIA 환경)
 )
 
-vis_backends = [dict(type='LocalVisBackend')]
+vis_backends = [dict(type='LocalVisBackend')] # 시각화 백엔드 설정 (로컬)
 visualizer = dict(
-    type='DetLocalVisualizer', vis_backends=vis_backends, name='visualizer')
-log_processor = dict(type='LogProcessor', window_size=50, by_epoch=True)
+    type='DetLocalVisualizer', vis_backends=vis_backends, name='visualizer') # 시각화기 설정 (DetLocalVisualizer와 연결됨)
+log_processor = dict(type='LogProcessor', window_size=50, by_epoch=True) # 로그 프로세서 설정 (50번마다 로그 처리)
 
-log_level = 'INFO'
-load_from = None
-resume = False
+log_level = 'INFO' # 로그 레벨 설정 (INFO)
+load_from = None # Pre-trained 모델 경로 (없음)
+resume = False # 학습 재개 여부 (False)

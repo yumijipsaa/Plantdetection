@@ -46,6 +46,7 @@ model = dict(
         num_things_classes=num_things_classes,
         num_stuff_classes=num_stuff_classes),
     test_cfg=dict(panoptic_on=False,
+                  score_thr=0.05,  # 0.05로 설정하여 5% 이상의 확률을 가진 것만 선택
                   instance_on=True),
 
 

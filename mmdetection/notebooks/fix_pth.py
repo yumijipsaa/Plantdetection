@@ -26,5 +26,5 @@ def add_prefix_to_file_names(coco_json_path, prefix):
 if __name__ == "__main__":
     # 수정할 대상 JSON 파일과 붙일 경로를 아래에 입력하세요
     add_prefix_to_file_names("data/train/dataset.json", "data/train")
-    # add_prefix_to_file_names("data/test/dataset.json", "data/test")
-    # add_prefix_to_file_names("data/val/dataset.json", "data/val")
+    add_prefix_to_file_names("data/test/dataset.json", "data/test")
+    add_prefix_to_file_names("data/val/dataset.json", "data/val")
